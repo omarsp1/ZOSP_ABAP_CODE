@@ -1,0 +1,174 @@
+*&---------------------------------------------------------------------*
+*& Report zre_test_pass_by_mix
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zre_test_pass_by_mix.
+
+DATA giv_time_by_reference_implicit TYPE t.
+DATA giv_time_by_reference_explicit TYPE t.
+DATA giv_time_by_value TYPE t.
+
+DATA gev_time_by_reference_implicit TYPE t.
+DATA gev_time_by_reference_explicit TYPE t.
+DATA gev_time_by_value TYPE t.
+
+DATA gcv_time_by_reference_implicit TYPE t.
+DATA gcv_time_by_reference_explicit TYPE t.
+DATA gcv_time_by_value TYPE t.
+
+CLASS lcl_time_utility DEFINITION.
+
+  PUBLIC SECTION.
+    CLASS-METHODS:
+        utility_time_importing
+      IMPORTING
+        iv_time_by_reference_implicit            TYPE t
+        REFERENCE(iv_time_by_reference_explicit) TYPE t
+        VALUE(iv_time_by_value)                  TYPE t
+      RAISING
+        cx_abap_datfm_invalid_date,
+    utility_time_exporting
+      EXPORTING
+        ev_time_by_reference_implicit            TYPE t
+        REFERENCE(ev_time_by_reference_explicit) TYPE t
+        VALUE(ev_time_by_value)                  TYPE t
+      CHANGING
+        cv_time_by_reference_implicit            TYPE t
+        REFERENCE(cv_time_by_reference_explicit) TYPE t
+        VALUE(cv_time_by_value)                  TYPE t
+      RETURNING
+        VALUE(result) TYPE t
+      RAISING
+        cx_abap_datfm_invalid_date.
+
+ENDCLASS.
+
+CLASS lcl_time_utility IMPLEMENTATION.
+
+  METHOD utility_time_importing.
+
+    "The field "IV_TIME_BY_REFERENCE_IMPLICIT" cannot be modified.
+    "iv_time_by_reference_implicit = iv_time_by_reference_implicit + 1.
+    WRITE: / 'IMPORTING Time By Ref Implicit &: ', iv_time_by_reference_implicit.
+
+    "The field "IV_TIME_BY_REFERENCE_EXPLICIT" cannot be modified.
+    "iv_time_by_reference_explicit = iv_time_by_reference_explicit + 2.
+    WRITE: / 'IMPORTING Time By Ref Explicit &: ', iv_time_by_reference_explicit.
+
+    iv_time_by_value = iv_time_by_value + 3.
+    WRITE: / 'IMPORTING Time By Value &: ', iv_time_by_value.
+
+    ENDMETHOD.
+
+  METHOD utility_time_exporting.
+
+    ev_time_by_reference_implicit = ev_time_by_reference_implicit + 4.
+    WRITE: / 'EXPORTING Time By Ref Implicit &: ',ev_time_by_reference_implicit.
+
+    ev_time_by_reference_explicit = ev_time_by_reference_explicit + 5.
+    WRITE: / 'EXPORTING Time By Ref Explicit &: ', ev_time_by_reference_explicit.
+
+    ev_time_by_value = ev_time_by_value + 6.
+    WRITE: / 'EXPORTING Time By Value &: ', ev_time_by_value.
+
+    cv_time_by_reference_implicit = cv_time_by_reference_implicit + 7.
+    WRITE: / 'CHANGING Time By Ref Implicit &: ', cv_time_by_reference_implicit.
+    cv_time_by_reference_explicit = cv_time_by_reference_explicit + 8.
+    WRITE: / 'CHANGING Time By Ref Explicit &: ', cv_time_by_reference_explicit.
+    cv_time_by_value = cv_time_by_value + 9.
+    WRITE: / 'CHANGING Time By Value &: ', cv_time_by_value.
+
+    result = ev_time_by_reference_implicit + 10.
+    WRITE: / 'RESULTING Time By Value &: ', result.
+
+  ENDMETHOD.
+
+
+ENDCLASS.
+
+
+START-OF-SELECTION.
+
+  DATA result_time TYPE t.
+
+  giv_time_by_reference_implicit = sy-uzeit.
+  giv_time_by_reference_explicit = sy-uzeit.
+  giv_time_by_value = sy-uzeit.
+
+  gev_time_by_reference_implicit = sy-uzeit.
+  gev_time_by_reference_explicit = sy-uzeit.
+  gev_time_by_value = sy-uzeit.
+
+  gcv_time_by_reference_implicit = sy-uzeit.
+  gcv_time_by_reference_explicit = sy-uzeit.
+  gcv_time_by_value = sy-uzeit.
+
+    WRITE: / 'S T A R T'.
+    WRITE: / '-------------------------------------------------------------------------'.
+    "The field "IV_TIME_BY_REFERENCE_IMPLICIT" cannot be modified.
+    "iv_time_by_reference_implicit = iv_time_by_reference_implicit + 1.
+    WRITE: / 'IMPORTING Time By Ref Implicit &: ', giv_time_by_reference_implicit.
+
+    "The field "IV_TIME_BY_REFERENCE_EXPLICIT" cannot be modified.
+    "iv_time_by_reference_explicit = iv_time_by_reference_explicit + 2.
+    WRITE: / 'IMPORTING Time By Ref Explicit &: ', giv_time_by_reference_explicit.
+
+*    gv_time_by_value = gv_time_by_value + 3.
+    WRITE: / 'IMPORTING Time By Value &: ', giv_time_by_value.
+    WRITE: / '-------------------------------------------------------------------------'.
+    lcl_time_utility=>utility_time_importing(
+*   Formal parameter "IV_TIME_BY_REFERENCE_IMPLICIT" is a IMPORTING parameter, not a EXPORTING parameter.
+*        IMPORTING
+            iv_time_by_reference_implicit = giv_time_by_reference_implicit
+            iv_time_by_reference_explicit = giv_time_by_reference_explicit
+            iv_time_by_value = giv_time_by_value ).
+    WRITE: / '-------------------------------------------------------------------------'.
+    WRITE: / 'IMPORTING Time By Ref Implicit &: ', giv_time_by_reference_implicit.
+    WRITE: / 'IMPORTING Time By Ref Explicit &: ', giv_time_by_reference_explicit.
+    WRITE: / 'IMPORTING Time By Value &: ', giv_time_by_value.
+    WRITE: / '-------------------------------------------------------------------------'.
+
+*    gv_time_by_reference_implicit = gv_time_by_reference_implicit + 4.
+    WRITE: / 'EXPORTING Time By Ref Implicit &: ',gev_time_by_reference_implicit.
+
+*    gv_time_by_reference_explicit = gv_time_by_reference_explicit + 5.
+    WRITE: / 'EXPORTING Time By Ref Explicit &: ', gev_time_by_reference_explicit.
+
+*    gv_time_by_value = gv_time_by_value + 6.
+    WRITE: / 'EXPORTING Time By Value &: ', gev_time_by_value.
+
+*    gv_time_by_reference_implicit = gv_time_by_reference_implicit + 7.
+    WRITE: / 'CHANGING Time By Ref Implicit &: ', gcv_time_by_reference_implicit.
+
+*    gv_time_by_reference_explicit = gv_time_by_reference_explicit + 8.
+    WRITE: / 'CHANGING Time By Ref Explicit &: ', gcv_time_by_reference_explicit.
+
+*    gv_time_by_value = gv_time_by_value + 9.
+    WRITE: / 'CHANGING Time By Value &: ', gcv_time_by_value.
+
+*    WRITE: / 'CHANGING Time By Value &: ', result.
+*    result = iv_time_by_reference_implicit + 10.
+    WRITE: / '-------------------------------------------------------------------------'.
+
+    result_time = lcl_time_utility=>utility_time_exporting(
+        IMPORTING
+            ev_time_by_reference_implicit = gev_time_by_reference_implicit
+            ev_time_by_reference_explicit = gev_time_by_reference_explicit
+            ev_time_by_value = gev_time_by_value
+        CHANGING
+            cv_time_by_reference_implicit = gcv_time_by_reference_implicit
+            cv_time_by_reference_explicit = gcv_time_by_reference_explicit
+            cv_time_by_value = gcv_time_by_value ).
+    WRITE: / '-------------------------------------------------------------------------'.
+    WRITE: / 'EXPORTING Time By Ref Implicit &: ', gev_time_by_reference_implicit.
+    WRITE: / 'EXPORTING Time By Ref Explicit &: ', gev_time_by_reference_explicit.
+    WRITE: / 'EXPORTING Time By Value &: ', gev_time_by_value.
+
+    WRITE: / 'CHANGING Time By Ref Implicit &: ', gcv_time_by_reference_implicit.
+    WRITE: / 'CHANGING Time By Ref Explicit &: ', gcv_time_by_reference_explicit.
+    WRITE: / 'CHANGING Time By Value &: ', gcv_time_by_value.
+
+    WRITE: / 'RESULTING Time By Value &: ', result_time.
+    WRITE: / '-------------------------------------------------------------------------'.
+    WRITE: / 'E N D'.
