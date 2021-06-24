@@ -1,0 +1,162 @@
+CLASS zcl_berlin_clock DEFINITION
+  PUBLIC.
+
+PUBLIC SECTION.
+    TYPES: BEGIN OF ty_minutes,
+            high TYPE string,
+            low TYPE string,
+           END OF ty_minutes,
+
+           BEGIN OF ty_hours,
+            high TYPE string,
+            low TYPE string,
+           END OF ty_hours,
+
+           BEGIN OF ty_time,
+             seconds TYPE char1,
+             hours   TYPE ty_hours,
+             minutes TYPE ty_minutes,
+           END OF ty_time.
+
+    METHODS:
+    seconds IMPORTING im_sec TYPE i
+        RETURNING VALUE(r_sec) TYPE char1,
+    minutes IMPORTING im_min TYPE i
+        RETURNING VALUE(r_min) TYPE ty_minutes,
+    hours IMPORTING im_hrs TYPE i
+        RETURNING VALUE(r_hrs) TYPE ty_hours,
+    get_time IMPORTING im_time TYPE char8
+        RETURNING VALUE(r_time) TYPE ty_time.
+PROTECTED SECTION.
+PRIVATE SECTION.
+
+*           tt_minutes TYPE STANDARD TABLE OF ty_minutes WITH DEFAULT KEY.
+
+ENDCLASS.
+
+
+
+CLASS zcl_berlin_clock IMPLEMENTATION.
+
+  METHOD seconds.
+  DATA: val TYPE i.
+        val = im_sec MOD 2.
+
+    IF im_sec < 0 OR im_sec > 59.
+        r_sec = 'E'.
+    ELSEIF val EQ 0.
+        r_sec = 'Y'.
+    ELSE.
+        r_sec = 'O'.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD hours.
+  DATA: l_mod5 TYPE i,
+        l_cos5 TYPE i,
+
+        l_Y    TYPE char4,
+        l_O    TYPE char4.
+
+    IF im_hrs < 0 OR im_hrs > 24.
+        r_hrs-high = 'E'.
+        r_hrs-low = 'E'.
+    ELSE.
+        l_Y = repeat( val = 'R' occ = im_hrs DIV 5 ).
+        l_O = repeat( val = 'O' occ = 4 - ( im_hrs DIV 5 ) ).
+
+        CONCATENATE l_Y l_O INTO r_hrs-high.
+        CLEAR: l_Y,  l_O.
+
+        l_Y = repeat( val = 'R' occ = im_hrs MOD 5 ).
+        l_O = repeat( val = 'O' occ = 4 - ( im_hrs MOD 5 ) ).
+
+        CONCATENATE l_Y l_O INTO r_hrs-low.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD minutes.
+  DATA: val TYPE i,
+        l_mod5 TYPE i,
+        l_cos5 TYPE i,
+        pos_3  TYPE i,
+        count  TYPE i,
+        l_Y    TYPE char11,
+        l_O    TYPE char11.
+
+    IF im_min < 0 OR im_min > 59.
+        r_min-high = 'E'.
+        r_min-low = 'E'.
+    ELSE.
+        l_Y = repeat( val = 'Y' occ = im_min DIV 5 ).
+        l_O = repeat( val = 'O' occ = 11 - ( im_min DIV 5 ) ).
+
+       count = 1.
+        DO 3 TIMES.
+            pos_3 = ( count * 3 ) - 1.
+            IF l_Y+pos_3(1) EQ 'Y'.
+                l_Y+pos_3(1) = 'R'.
+            ENDIF.
+            count = count + 1.
+        ENDDO.
+
+        CONCATENATE l_Y l_O INTO r_min-high.
+        CLEAR: l_Y,  l_O.
+
+        l_Y = repeat( val = 'Y' occ = im_min MOD 5 ).
+        l_O = repeat( val = 'O' occ = 4 - ( im_min MOD 5 ) ).
+
+        CONCATENATE l_Y l_O INTO r_min-low.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+
+
+  METHOD get_time.
+  DATA: l_time TYPE  syst_uzeit,
+       l_tmp  TYPE  char8,
+       l_num  TYPE i.
+
+    r_time-seconds      = 'E'.
+    r_time-hours-high   = 'E'.
+    r_time-hours-low    = 'E'.
+    r_time-minutes-high = 'E'.
+    r_time-minutes-low  = 'E'.
+
+
+
+  IF im_time IS NOT INITIAL.
+
+  l_tmp = im_time.
+
+   REPLACE ALL OCCURRENCES OF ':' IN l_tmp WITH ''.
+   l_time =  l_tmp.
+
+   CALL FUNCTION 'TIME_CHECK_PLAUSIBILITY'
+     EXPORTING
+       time                      = l_time
+     EXCEPTIONS
+       plausibility_check_failed = 1
+       OTHERS                    = 2.
+
+   IF sy-subrc <> 0.
+    RETURN.
+   ENDIF.
+
+    l_num = l_time+4(2).
+    r_time-seconds      = seconds( im_sec = l_num ).
+
+    l_num = l_time(2).
+    r_time-hours  = hours( l_num ).
+
+    l_num = l_time+2(2).
+    r_time-minutes = minutes( l_num ).
+
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
