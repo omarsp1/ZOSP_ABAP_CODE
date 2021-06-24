@@ -1,0 +1,189 @@
+*"* use this source file for your ABAP unit test classes
+CLASS lclt_berlin_clock DEFINITION
+DURATION SHORT
+RISK LEVEL HARMLESS
+FOR TESTING.
+
+PUBLIC SECTION.
+    METHODS: test_seconds_odd FOR TESTING,
+             test_seconds_even FOR TESTING,
+             test_seconds_valid FOR TESTING,
+             test_minutes_valid_major_zero FOR TESTING,
+             test_minutes_valid_minor_sixty FOR TESTING,
+             test_minutes_in_range FOR TESTING,
+             test_hours_valid_minor_zero FOR TESTING,
+             test_hours_valid_major_24 FOR TESTING,
+             test_hours_in_range FOR TESTING,
+             test_berlin_clock_invalid FOR TESTING,
+             test_berlin_clock_in_range FOR TESTING,
+             test_berlin_clock_midnight FOR TESTING,
+             test_berlin_clock_any FOR TESTING.
+
+PROTECTED SECTION.
+PRIVATE SECTION.
+    METHODS: setup.
+    DATA: m_cut TYPE REF TO zcl_berlin_clock.
+ENDCLASS.
+
+
+
+CLASS lclt_berlin_clock IMPLEMENTATION.
+    METHOD:
+    setup.
+        "GIVEN
+        m_cut = NEW zcl_berlin_clock( ).
+    ENDMETHOD.
+
+  METHOD test_seconds_even.
+
+    "THEN
+    cl_Abap_Unit_Assert=>assert_equals( act = m_cut->seconds( 2 )
+                                        exp = 'Y').
+  ENDMETHOD.
+
+  METHOD test_seconds_odd.
+
+      "THEN
+    cl_Abap_Unit_Assert=>assert_equals( act = m_cut->seconds( 13 )
+                                        exp = 'O').
+  ENDMETHOD.
+
+  METHOD test_seconds_valid.
+      cl_Abap_Unit_Assert=>assert_equals( act = m_cut->seconds( -1 )
+                                        exp = 'E').
+  ENDMETHOD.
+
+  METHOD test_minutes_valid_major_zero.
+
+    DATA wl_minutes type zcl_berlin_clock=>ty_minutes.
+
+    wl_minutes-high = 'E'.
+    wl_minutes-low = 'E'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->minutes( -1 )
+                                        exp = wl_minutes ).
+  ENDMETHOD.
+
+  METHOD test_minutes_valid_minor_sixty.
+
+    DATA wl_minutes type zcl_berlin_clock=>ty_minutes.
+
+    wl_minutes-high = 'E'.
+    wl_minutes-low = 'E'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->minutes( 60 )
+                                        exp = wl_minutes ).
+  ENDMETHOD.
+
+  METHOD test_minutes_in_range.
+
+    DATA wl_minutes type zcl_berlin_clock=>ty_minutes.
+
+    "43 MINUETS
+*    wl_minutes-high = 'YYRYYRYYOOO'.
+*    wl_minutes-high = 'YYYYYYYYOOO'.
+*    wl_minutes-low = 'YYYO'.
+*
+    "18 MINUETS
+    wl_minutes-high = 'YYRYYRYYRYY'.
+    wl_minutes-low = 'YYYY'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->minutes( 59 )
+                                        exp = wl_minutes ).
+
+  ENDMETHOD.
+
+
+  METHOD test_hours_valid_minor_zero.
+
+    DATA wl_hours type zcl_berlin_clock=>ty_hours.
+
+    "-1 hours
+    wl_hours-high = 'E'.
+    wl_hours-low = 'E'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->hours( -1 )
+                                        exp = wl_hours ).
+
+  ENDMETHOD.
+*
+  METHOD test_hours_in_range.
+
+      DATA wl_hours type zcl_berlin_clock=>ty_hours.
+
+    "24 hours
+    wl_hours-high = 'OOOO'.
+    wl_hours-low = 'OOOO'.
+
+    cl_Abap_Unit_Assert=>assert_equals( act = m_cut->hours( 0 )
+                                        exp = wl_hours ).
+
+
+  ENDMETHOD.
+
+  METHOD test_hours_valid_major_24.
+
+    DATA wl_hours type zcl_berlin_clock=>ty_hours.
+
+    "-1 hours
+    wl_hours-high = 'E'.
+    wl_hours-low = 'E'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->hours( 25 )
+                                        exp = wl_hours ).
+  ENDMETHOD.
+
+  METHOD test_berlin_clock_invalid.
+    DATA l_time TYPE zcl_berlin_clock=>ty_time.
+
+    "24:00:00
+    l_time-seconds      = 'E'.
+    l_time-hours-high   = 'E'.
+    l_time-hours-low    = 'E'.
+    l_time-minutes-high = 'E'.
+    l_time-minutes-low  = 'E'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->get_time( im_time = '24:00:01' )
+                                        exp = l_time ).
+  ENDMETHOD.
+
+  METHOD test_berlin_clock_in_range.
+    DATA l_time TYPE zcl_berlin_clock=>ty_time.
+    "24:00:00
+    l_time-seconds      = 'Y'.
+    l_time-hours-high   = 'RRRR'.
+    l_time-hours-low    = 'RRRR'.
+    l_time-minutes-high = 'OOOOOOOOOOO'.
+    l_time-minutes-low  = 'OOOO'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->get_time( im_time = '24:00:00' )
+                                        exp = l_time ).
+  ENDMETHOD.
+
+  METHOD test_berlin_clock_midnight.
+    DATA l_time TYPE zcl_berlin_clock=>ty_time.
+    "24:00:00
+    l_time-seconds      = 'Y'.
+    l_time-hours-high   = 'OOOO'.
+    l_time-hours-low    = 'OOOO'.
+    l_time-minutes-high = 'OOOOOOOOOOO'.
+    l_time-minutes-low  = 'OOOO'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->get_time( im_time = '00:00:00' )
+                                        exp = l_time ).
+  ENDMETHOD.
+
+  METHOD test_berlin_clock_any.
+    DATA l_time TYPE zcl_berlin_clock=>ty_time.
+    "11:31:54
+    l_time-seconds      = 'Y'.
+    l_time-hours-high   = 'RROO'.
+    l_time-hours-low    = 'ROOO'.
+    l_time-minutes-high = 'YYRYYROOOOO'.
+    l_time-minutes-low  = 'YOOO'.
+
+            cl_Abap_Unit_Assert=>assert_equals( act = m_cut->get_time( im_time = '11:31:54' )
+                                        exp = l_time ).
+  ENDMETHOD.
+
+ENDCLASS.
