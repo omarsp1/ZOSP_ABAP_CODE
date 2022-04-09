@@ -1,13 +1,13 @@
 general:
 steps:
-gctsDeploy:
-host: "https://tst.opensap.consarea.com:44300"
-client: "100"
-abapCredentialsId: "PJPI05VF_Credentials"
-repository: "ZOSP_ABAP_CODE"
-remoteRepositoryURL: "https://github.com/omarsp1/ZOSP_ABAP_CODE"
-role: "SOURCE"
-vSID: "PJP"
-verbose: true
-type: "GITHUB"
-rollback: false
+	gctsDeploy:
+		host: "https://tst.opensap.consarea.com:44300"
+		client: "100"
+		abapCredentialsId: "PJPI05VF_Credentials"
+		repository: "ZOSP_ABAP_CODE"
+		remoteRepositoryURL: "https://github.com/omarsp1/ZOSP_ABAP_CODE"
+		role: "SOURCE"
+		vSID: "PJP"
+		verbose: true
+		type: "GITHUB"
+		rollback: false
