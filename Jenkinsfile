@@ -15,7 +15,9 @@ setupCommonPipelineEnvironment script:this
 stage('Deploy') {
 when { anyOf { branch 'main' } }
 steps {
-echo "Deploying...."
+gctsDeploy(
+script : this
+)
 }
 }
 }
